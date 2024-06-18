@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <input type="file" name="file" id="file">
+    <div>
+    </div>
+    <script>
+
+        function parseQuestionsAndAnswers(data) {
+            let arr = [];
+            // let parts = [...new Set(data.split('\n').filter(item => item.includes("——")).map(item => item.split('、')[1] || item))].length;
+            let questions = data.split('\n').filter(item => item.includes("__")).map(item => {
+                return {
+                    label: item,
+                    answer: ''
+                }
+            });
+            let ans = data.split('\n').filter(item => item.includes(".") && !item.includes("__")).map(item => {
+                return item.match(/(\d+[\．\.][\s\S]*?)(?=\d+[\．\.]|$)/g)
+            });
+            const flattenedAnswers = ans.flat();
+
+            // 将答案填入label对应的对象中
+            questions.forEach((item, index) => {
+                item.answer = flattenedAnswers[index];
+            });
+            return questions;
+        }
+        document.getElementById('file').addEventListener('change', async function (e) {
+            const file = e.target.files[0];
+            const formdata = new FormData();
+            formdata.append('file', file);
+            const res = await fetch('http://localhost:3000/upload', {
+                method: 'POST',
+                body: formdata,
+            })
+            const res2 = await res.text()
+            // console.log(res2, res)
+            // console.log([...new Set(res2.split('\n').filter(item => item.includes("——")).map(item => item.split('、')[1] || item))]);4
+            const result = parseQuestionsAndAnswers(res2)
+            result.forEach(item => {
+                const p = document.createElement('p');
+                const labelSpan = document.createElement('span');
+                const answerSpan = document.createElement('span');
+                answerSpan.style.color = 'red';
+                labelSpan.innerText = item.label + ' ';
+                answerSpan.innerText = item.answer + ' ';
+                p.appendChild(labelSpan);
+                p.appendChild(answerSpan);
+                document.querySelector('div').appendChild(p);
+            })
+            // res2.split('\n').filter(item => item !== '').map(item => {
+            //     if(item.includes('___')){
+            //         const p = document.createElement('p');
+            //         p.innerText = item;
+            //         document.querySelector('div').appendChild(p);
+            //     }
+            // })
+            // const answerArr = res2.split('\n').filter(item => item !== '').map(item => {
+            //     if(!item.includes('___') && item.match(/^[0-9]/)){
+            //         return item
+            //     }
+            // })
+            // console.log(answerArr);
+
+        })
+    </script>
+</body>
+
+</html>
