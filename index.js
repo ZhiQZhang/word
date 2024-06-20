@@ -24,6 +24,11 @@ app.get('/', async (req, res) => { // 当接收到GET请求时，执行以下操
 
 
 app.post('/upload', upload.single('file'), async (req, res) => {
+    // 设置响应头解决跨域
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE')
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type')
+    
     const fileBuffer = fs.readFileSync(req.file.path)
     const result = await mammoth.extractRawText({ buffer: fileBuffer }, {
 
